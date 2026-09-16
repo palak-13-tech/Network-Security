@@ -1,29 +1,51 @@
-import hashlib
 import random
+import hashlib
 
-# Stored user details
-username = "admin"
-password = "1234"
+SECRET = "1234"
 
-# Generate a challenge
-challenge = str(random.randint(1000, 9999))
+# Generate a random challenge
+def generate_challenge():
+    return str(random.randint(1000, 9999))
 
-print("Challenge:", challenge)
+# Generate response
+def generate_response(challenge):
+    return hashlib.sha256(
+        (challenge + SECRET).encode()
+    ).hexdigest()
 
-# User enters 
-user = input("Enter username: ")
-pwd = input("Enter password: ")
+print("=== CHALLENGE-RESPONSE AUTHENTICATION ===")
 
-# Generate response using password + challenge
-response = hashlib.sha256((pwd + challenge).encode()).hexdigest()
+# Server generates challenge
+challenge = generate_challenge()
+print("Server Challenge:", challenge)
 
-# Check authentication
-if user == username and pwd == password:
-    print("Authentication Successful!")
-    print("Response:", response)
+# Client generates response
+response = generate_response(challenge)
+print("Client Response:", response)
 
-# Simulate replay attack
-    print("\nTrying to reuse the same response...")
-    print("Replay Attack Detected!")
+# Server verifies response
+expected_response = generate_response(challenge)
+
+if response == expected_response:
+    print("Authentication: SUCCESS")
 else:
-    print("Authentication Failed!")
+    print("Authentication: FAILED")
+
+
+print("\n=== REPLAY ATTACK SIMULATION ===")
+
+# Attacker captures old response
+captured_response = response
+print("Captured Old Response:", captured_response)
+
+# Server generates a new challenge
+new_challenge = generate_challenge()
+print("New Server Challenge:", new_challenge)
+
+# Attacker tries old response
+expected_new_response = generate_response(new_challenge)
+
+if captured_response == expected_new_response:
+    print("Replay Attack: SUCCESS")
+else:
+    print("Replay Attack: BLOCKED")
